@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機: 127.0.0.1
--- 產生時間： 2019 年 03 月 24 日 11:32
+-- 產生時間： 2019 年 04 月 03 日 17:26
 -- 伺服器版本: 10.1.37-MariaDB
 -- PHP 版本： 7.3.0
 
@@ -188,7 +188,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `cid`, `check_out_date`) VALUES
-('testOrder01', 'test01', '2019-03-22');
+('testOrder01', 'test01', '2019-03-22'),
+('testOrder02', 'test01', '2019-03-22');
 
 -- --------------------------------------------------------
 
@@ -209,7 +210,9 @@ CREATE TABLE `order_detail` (
 
 INSERT INTO `order_detail` (`order_id`, `is_service`, `item_id`, `proceeded_date`) VALUES
 ('testOrder01', b'0', 'ptu01', '2019-03-22'),
-('testOrder01', b'1', 'testService01', '2019-03-22');
+('testOrder01', b'1', 'testService01', '2019-03-22'),
+('testOrder02', b'0', 'ptu01', '2019-03-29'),
+('testOrder02', b'0', 'ptu02', '2019-03-26');
 
 -- --------------------------------------------------------
 
@@ -232,7 +235,8 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`merchant_code`, `pid`, `product_name`, `p_type_id`, `image_uri`, `description`, `price`) VALUES
-('shop01', 'ptu01', 'ptu01', 'pomg01', '', '', '20.50');
+('shop01', 'ptu01', 'ptu01', 'pomg01', 'products/ptu01/ptu01.jpg', '', '20.50'),
+('shop01', 'ptu02', 'testproduct2', 'pomg01', 'products/ptu02/ptu02.jpg', '', '602.01');
 
 -- --------------------------------------------------------
 
@@ -251,7 +255,22 @@ CREATE TABLE `product_orders` (
 --
 
 INSERT INTO `product_orders` (`order_id`, `pid`, `quantity`) VALUES
-('testOrder01', 'ptu01', 10);
+('testOrder01', 'ptu01', 10),
+('testOrder02', 'ptu01', 22),
+('testOrder02', 'ptu02', 12);
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `product_rate`
+--
+
+CREATE TABLE `product_rate` (
+  `pid` varchar(20) NOT NULL,
+  `cid` varchar(20) NOT NULL,
+  `rate` decimal(10,2) NOT NULL,
+  `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -390,6 +409,12 @@ ALTER TABLE `labour`
   ADD PRIMARY KEY (`labour_list_id`,`labour_id`);
 
 --
+-- 資料表索引 `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`order_id`);
+
+--
 -- 資料表索引 `order_detail`
 --
 ALTER TABLE `order_detail`
@@ -400,6 +425,18 @@ ALTER TABLE `order_detail`
 --
 ALTER TABLE `products`
   ADD UNIQUE KEY `pid` (`pid`);
+
+--
+-- 資料表索引 `product_orders`
+--
+ALTER TABLE `product_orders`
+  ADD PRIMARY KEY (`order_id`,`pid`);
+
+--
+-- 資料表索引 `product_rate`
+--
+ALTER TABLE `product_rate`
+  ADD PRIMARY KEY (`pid`,`cid`);
 
 --
 -- 資料表索引 `product_type`
