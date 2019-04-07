@@ -20,12 +20,18 @@
 <script src="main.js"></script>
  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC6A1Z9yRU1_paAgu2nfhl6l4AKX8EdLtE&callback=initMap" async defer></script>
  <script>
- 	let map;
+let map;
 let globalChangeAble = {
+    serverDestination: 'http://192.168.0.103/IS/Google_Map/upload.php',
 	infoWindow: {
 		last: null,
 		isOpen: null
-	}
+	},
+    locations: null,
+    myLocation: {
+        lat: 22.3193039, 
+        lng: 114.169361
+    }
 }
 let lastInfoWindow = null
 function awaitPostMessage() {
@@ -55,9 +61,29 @@ function awaitPostMessage() {
     while (queue.length > 0) window.postMessage(queue.shift());
   }
 }
-
 awaitPostMessage()
+
+function requestShopAddress() {
+    fetch(globalChangeAble.serverDestination, {
+        method: 'POST',
+        header: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then((response) => response.json())
+    .then(responseData => {
+        globalChangeAble.locations = responseData
+    })
+    .catch((error) => {
+        console.log(error)
+    })
+    initMap()
+}
 function initMap() {
+    let locations = globalChangeAble.locations
+    /*
 	let locations = [
         {lat: -31.563910, lng: 147.154312},
         {lat: -33.718234, lng: 150.363181},
@@ -82,13 +108,13 @@ function initMap() {
         {lat: -42.734358, lng: 147.501315},
         {lat: -42.735258, lng: 147.438000},
         {lat: -43.999792, lng: 170.463352}
-    ];
+    ];*/
 	map = new google.maps.Map(document.querySelector('#map'), {
 		center: {
-			lat: -28.024, 
-			lng: 140.887
+			lat: globalChangeAble.myLocation.lat, 
+			lng: globalChangeAble.myLocation.lng
 		},
-		zoom: 8,
+		zoom: 10,
 		scaleControl: false,
 		fullscreenControl: false,
 		mapTypeControl: false,
@@ -101,7 +127,6 @@ function initMap() {
 			content: '3322222'
 		})
 	})
-	//let infowindow = new google.maps.InfoWindow();
 	var markers = locations.map(function(location, i) {
         return new google.maps.Marker({
         	position: location,
@@ -109,16 +134,9 @@ function initMap() {
             map: map,
             draggable: false,
             animation: google.maps.Animation.DROP,
-            title: '3322'
+            title: '312'
         });
     });
-    //console.log(infowindows[0].content)
-    /*
-    markers.forEach(function(marker, index) {
-    	marker.addListener('click', () => {
-    		infowindows[index].open(map, marker)
-    	})
-    })*/
 	markers.map(function(marker, i) {
 		google.maps.event.addListener(marker, 'click', () => {
 			const lastInfoWindow = globalChangeAble.infoWindow.last
@@ -149,6 +167,9 @@ function initMap() {
     	})
     })
 }
+function queryShopsWithLocation($position) {
+
+}
 function returnMerchantChode(marker, info) {
 	/*
 	console.log(marker.title)
@@ -156,10 +177,26 @@ function returnMerchantChode(marker, info) {
 	//window.postMessage('asd')
 	//console.log(window.postMessage('byebye111'))
 }
+function moveToLocation() {
+    let center = new google.maps.LatLng(globalChangeAble.myLocation.lat, globalChangeAble.myLocation.lng);
+    map.panTo(center);
+}
 document.addEventListener("message", function(data) {
-	/*
-	let msg = JSON.parse(data.data);
-	alert(msg.hello);*/
+    let request = JSON.parse(data.data);
+    let requestType = request.requestType;
+    let details = request.details;
+    switch (requestType) {
+        case 'myLocation':
+            const location = {
+                lat: details.location.coords.latitude,
+                lng: details.location.coords.longitude,
+            };
+            globalChangeAble.myLocation.lat = location.lat
+            globalChangeAble.myLocation.lng = location.lng
+            moveToLocation();
+        break;
+    }
+    //alert(JSON.stringify(details.location));
 })
 /* zooming
 1: World
